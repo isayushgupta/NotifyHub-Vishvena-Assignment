@@ -4,20 +4,24 @@ import DataTable from "../components/tables/DataTable";
 import EmailForm from "../components/forms/EmailForm";
 import SmsForm from "../components/forms/SmsForm";
 import WhatsappForm from "../components/forms/WhatsappForm";
-import { fetchEmails } from "../services/api";
 import Pagination from "../components/pagination/Pagination";
-import { fetchSms, fetchWhatsapp } from "../services/api";
-
+import {
+    fetchEmails,
+    fetchSms,
+    fetchWhatsapp,
+} from "../services/api";
 
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState("EMAIL");
+
     const [emails, setEmails] = useState([]);
-    const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
     const [sms, setSms] = useState([]);
     const [whatsapp, setWhatsapp] = useState([]);
 
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
+    const [loading, setLoading] = useState(false);
 
     const emailColumns = [
         { key: "id", label: "#" },
@@ -34,29 +38,45 @@ const Dashboard = () => {
 
     const whatsappColumns = smsColumns;
 
-
     const refreshEmails = async (pageNumber = 0) => {
         try {
+            setLoading(true);
             const res = await fetchEmails(pageNumber, 10);
             setEmails(res.content || []);
             setTotalPages(res.totalPages || 0);
             setPage(pageNumber);
         } catch (e) {
             console.error("Failed to fetch emails", e);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const refreshSms = async (page = 0) => {
-        const res = await fetchSms(page, 10);
-        setSms(res.content || []);
+    const refreshSms = async () => {
+        try {
+            setLoading(true);
+            const res = await fetchSms(0, 10);
+            setSms(res.content || []);
+        } catch (e) {
+            console.error("Failed to fetch SMS", e);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const refreshWhatsapp = async (page = 0) => {
-        const res = await fetchWhatsapp(page, 10);
-        setWhatsapp(res.content || []);
+    const refreshWhatsapp = async () => {
+        try {
+            setLoading(true);
+            const res = await fetchWhatsapp(0, 10);
+            setWhatsapp(res.content || []);
+        } catch (e) {
+            console.error("Failed to fetch WhatsApp", e);
+        } finally {
+            setLoading(false);
+        }
     };
 
-
+    // initial load (email tab)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         refreshEmails(0);
@@ -71,7 +91,11 @@ const Dashboard = () => {
             {activeTab === "EMAIL" && (
                 <>
                     <EmailForm onSuccess={() => refreshEmails(page)} />
-                    <DataTable columns={emailColumns} data={emails} />
+                    <DataTable
+                        columns={emailColumns}
+                        data={emails}
+                        loading={loading}
+                    />
                     <Pagination
                         currentPage={page}
                         totalPages={totalPages}
@@ -79,20 +103,28 @@ const Dashboard = () => {
                     />
                 </>
             )}
+
             {activeTab === "SMS" && (
                 <>
                     <SmsForm onSuccess={refreshSms} />
-                    <DataTable columns={smsColumns} data={sms} />
+                    <DataTable
+                        columns={smsColumns}
+                        data={sms}
+                        loading={loading}
+                    />
                 </>
             )}
 
             {activeTab === "WHATSAPP" && (
                 <>
                     <WhatsappForm onSuccess={refreshWhatsapp} />
-                    <DataTable columns={whatsappColumns} data={whatsapp} />
+                    <DataTable
+                        columns={whatsappColumns}
+                        data={whatsapp}
+                        loading={loading}
+                    />
                 </>
             )}
-
         </div>
     );
 };

@@ -1,4 +1,15 @@
-const DataTable = ({ columns, data }) => {
+import { formatDate } from "../../utils/formatDate";
+
+
+const DataTable = ({ columns, data, loading }) => {
+    if (loading) {
+        return (
+            <div className="p-4 text-center text-gray-500">
+                Loading...
+            </div>
+        );
+    }
+
     return (
         <div className="overflow-x-auto border rounded-lg">
             <table className="min-w-full border-collapse">
@@ -33,7 +44,8 @@ const DataTable = ({ columns, data }) => {
                                         key={col.key}
                                         className="px-4 py-3 text-sm text-gray-700 border-b"
                                     >
-                                        {row[col.key]}
+                                        {col.key === "sentAt" ? formatDate(row[col.key]) : row[col.key]
+}
                                     </td>
                                 ))}
                             </tr>
